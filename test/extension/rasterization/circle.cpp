@@ -1,4 +1,3 @@
-// Boost.GIL (Generic Image Library) - tests
 //
 // Copyright 2020 Olzhas Zhumabek <anonymous.from.applecity@gmail.com>
 //
@@ -7,30 +6,34 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include <boost/gil/point.hpp>
+#include <boost/gil/extension/rasterization/circle.hpp>
+
 #include <boost/core/lightweight_test.hpp>
-#include "boost/gil/extension/rasterization/circle.hpp"
-#include <cstddef>
+
+#include <cmath>
+#include <cstdint>
 #include <vector>
 
 namespace gil = boost::gil;
 
 template <typename Rasterizer>
-void test_rasterizer_follows_equation(std::ptrdiff_t radius, Rasterizer rasterizer)
+void test_rasterizer_follows_equation(Rasterizer rasterizer)
 {
-
-    std::vector<gil::point_t> circle_points(rasterizer.point_count(radius));
+    std::ptrdiff_t const radius = rasterizer.radius;
+    std::vector<gil::point_t> circle_points(rasterizer.point_count());
     std::ptrdiff_t const r_squared = radius * radius;
-    rasterizer(radius, {0, 0}, circle_points.begin());
-    std::vector<gil::point_t> first_octant(rasterizer.point_count(radius) / 8);
+    rasterizer(circle_points.begin());
+    std::vector<gil::point_t> first_octant(rasterizer.point_count() / 8);
 
     for (std::size_t i = 0, octant_index = 0; i < circle_points.size(); i += 8, ++octant_index)
     {
         first_octant[octant_index] = circle_points[i];
     }
 
-    for (const auto& point : first_octant)
+    for (auto const& point : first_octant)
     {
-        double y_exact = std::sqrt(r_squared - point.x * point.x);
+        double const y_exact = std::sqrt(r_squared - point.x * point.x);
         std::ptrdiff_t lower_result = static_cast<std::ptrdiff_t>(std::floor(y_exact));
         std::ptrdiff_t upper_result = static_cast<std::ptrdiff_t>(std::ceil(y_exact));
         BOOST_TEST(point.y >= lower_result && point.y <= upper_result);
@@ -38,10 +41,10 @@ void test_rasterizer_follows_equation(std::ptrdiff_t radius, Rasterizer rasteriz
 }
 
 template <typename Rasterizer>
-void test_connectivity(std::ptrdiff_t radius, Rasterizer rasterizer)
+void test_connectivity(Rasterizer rasterizer)
 {
-    std::vector<gil::point_t> circle_points(rasterizer.point_count(radius));
-    rasterizer(radius, {radius, radius}, circle_points.begin());
+    std::vector<gil::point_t> circle_points(rasterizer.point_count());
+    rasterizer(circle_points.begin());
     for (std::size_t i = 0; i < 8; ++i)
     {
         std::vector<gil::point_t> octant(circle_points.size() / 8);
@@ -65,11 +68,11 @@ int main()
 {
     for (std::ptrdiff_t radius = 5; radius <= 512; ++radius)
     {
-        test_rasterizer_follows_equation(radius, gil::midpoint_circle_rasterizer{});
+        test_rasterizer_follows_equation(gil::midpoint_circle_rasterizer{{0, 0}, radius});
         // TODO: find out a new testing procedure for trigonometric rasterizer
         // test_equation_following(radius, gil::trigonometric_circle_rasterizer{});
-        test_connectivity(radius, gil::midpoint_circle_rasterizer{});
-        test_connectivity(radius, gil::trigonometric_circle_rasterizer{});
+        test_connectivity(gil::midpoint_circle_rasterizer{{radius, radius}, radius});
+        test_connectivity(gil::trigonometric_circle_rasterizer{{radius, radius}, radius});
     }
 
     return boost::report_errors();

@@ -44,8 +44,8 @@ protected:
     , _dim     ( 0, 0 )
     {}
 
-    image_read_settings_base( const point_t& top_left
-                            , const point_t& dim
+    image_read_settings_base( point_t const& top_left
+                            , point_t const& dim
                             )
     : _top_left( top_left )
     , _dim     ( dim      )
@@ -54,8 +54,8 @@ protected:
 
 public:
 
-    void set( const point_t& top_left
-            , const point_t& dim
+    void set( point_t const& top_left
+            , point_t const& dim
             )
     {
         _top_left = top_left;
@@ -71,7 +71,7 @@ public:
 /**
  * Boolean meta function, std::true_type if the pixel type \a PixelType is supported
  * by the image format identified with \a FormatTag.
- * \todo the name is_supported is to generic, pick something more IO realted.
+ * \todo the name is_supported is to generic, pick something more I/O-related.
  */
 // Depending on image type the parameter Pixel can be a reference type
 // for bit_aligned images or a pixel for byte images.

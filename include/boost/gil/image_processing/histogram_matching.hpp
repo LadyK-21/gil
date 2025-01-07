@@ -30,7 +30,7 @@ namespace boost { namespace gil {
 ///        Algorithm :-
 ///        1. Calculate histogram A(pixel) of input image and G(pixel) of reference image.
 ///        2. Compute the normalized cumulative(CDF) histograms of A and G.
-///        3. Match the histograms using transofrmation  => CDF(A(px)) = CDF(G(px'))
+///        3. Match the histograms using transformation  => CDF(A(px)) = CDF(G(px'))
 ///                                                      => px' = Inv-CDF (CDF(px))
 ///
 
@@ -43,8 +43,8 @@ namespace boost { namespace gil {
 ///        reference histogram and returns the color map used for histogram matching.
 ///
 template <typename SrcKeyType, typename RefKeyType>
-std::map<SrcKeyType, SrcKeyType>
-    histogram_matching(histogram<SrcKeyType> const& src_hist, histogram<RefKeyType> const& ref_hist)
+auto histogram_matching(histogram<SrcKeyType> const& src_hist, histogram<RefKeyType> const& ref_hist)
+    -> std::map<SrcKeyType, SrcKeyType>
 {
     histogram<SrcKeyType> dst_hist;
     return histogram_matching(src_hist, ref_hist, dst_hist);
@@ -63,16 +63,17 @@ std::map<SrcKeyType, SrcKeyType>
 ///        matching as well as transforming the destination histogram.
 ///
 template <typename SrcKeyType, typename RefKeyType, typename DstKeyType>
-std::map<SrcKeyType, DstKeyType> histogram_matching(
+auto histogram_matching(
     histogram<SrcKeyType> const& src_hist,
     histogram<RefKeyType> const& ref_hist,
     histogram<DstKeyType>& dst_hist)
+    -> std::map<SrcKeyType, DstKeyType>
 {
     static_assert(
         std::is_integral<SrcKeyType>::value &&
         std::is_integral<RefKeyType>::value &&
         std::is_integral<DstKeyType>::value,
-        "Source, Refernce or Destination histogram type is not appropriate.");
+        "Source, Reference or Destination histogram type is not appropriate.");
 
     using value_t = typename histogram<SrcKeyType>::value_type;
     dst_hist.clear();
@@ -165,10 +166,10 @@ void histogram_matching(
     std::size_t const channels     = num_channels<SrcView>::value;
     coord_t const width            = src_view.width();
     coord_t const height           = src_view.height();
-    source_channel_t src_pixel_min = std::numeric_limits<source_channel_t>::min();
-    source_channel_t src_pixel_max = std::numeric_limits<source_channel_t>::max();
-    ref_channel_t ref_pixel_min    = std::numeric_limits<ref_channel_t>::min();
-    ref_channel_t ref_pixel_max    = std::numeric_limits<ref_channel_t>::max();
+    source_channel_t src_pixel_min = (std::numeric_limits<source_channel_t>::min)();
+    source_channel_t src_pixel_max = (std::numeric_limits<source_channel_t>::max)();
+    ref_channel_t ref_pixel_min    = (std::numeric_limits<ref_channel_t>::min)();
+    ref_channel_t ref_pixel_max    = (std::numeric_limits<ref_channel_t>::max)();
 
     for (std::size_t i = 0; i < channels; i++)
     {

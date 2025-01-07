@@ -17,6 +17,7 @@
 #include <boost/type_traits.hpp>
 #include <boost/functional/hash.hpp>
 
+#include <array>
 #include <iostream>
 #include <tuple>
 #include <utility>
@@ -44,16 +45,17 @@ namespace detail {
 /// \ingroup Histogram-Helpers
 ///
 template <std::size_t Index, typename... T>
-inline typename std::enable_if<Index == sizeof...(T), void>::type
-    hash_tuple_impl(std::size_t&, std::tuple<T...> const&)
+inline auto hash_tuple_impl(std::size_t&, std::tuple<T...> const&)
+    ->  typename std::enable_if<Index == sizeof...(T), void>::type
 {
+    // terminating case
 }
 
 /// \ingroup Histogram-Helpers
 ///
 template <std::size_t Index, typename... T>
-inline typename std::enable_if<Index != sizeof...(T), void>::type
-    hash_tuple_impl(std::size_t& seed, std::tuple<T...> const& t)
+inline auto hash_tuple_impl(std::size_t& seed, std::tuple<T...> const& t)
+    -> typename std::enable_if<Index != sizeof...(T), void>::type
 {
     boost::hash_combine(seed, std::get<Index>(t));
     hash_tuple_impl<Index + 1>(seed, t);
@@ -71,7 +73,7 @@ inline typename std::enable_if<Index != sizeof...(T), void>::type
 template <typename... T>
 struct hash_tuple
 {
-    std::size_t operator()(std::tuple<T...> const& t) const
+    auto operator()(std::tuple<T...> const& t) const -> std::size_t
     {
         std::size_t seed = 0;
         hash_tuple_impl<0>(seed, t);
@@ -134,11 +136,11 @@ bool tuple_compare(Tuple const& t1, Tuple const& t2)
 template <typename Tuple>
 struct tuple_limit
 {
-    static constexpr Tuple min()
+    static constexpr Tuple (min)()
     {
         return min_impl(boost::mp11::make_index_sequence<std::tuple_size<Tuple>::value>{});
     }
-    static constexpr Tuple max()
+    static constexpr Tuple (max)()
     {
         return max_impl(boost::mp11::make_index_sequence<std::tuple_size<Tuple>::value>{});
     }
@@ -148,14 +150,14 @@ private:
     static constexpr Tuple min_impl(boost::mp11::index_sequence<I...>)
     {
         return std::make_tuple(
-            std::numeric_limits<typename std::tuple_element<I, Tuple>::type>::min()...);
+            (std::numeric_limits<typename std::tuple_element<I, Tuple>::type>::min)()...);
     }
 
     template <std::size_t... I>
     static constexpr Tuple max_impl(boost::mp11::index_sequence<I...>)
     {
         return std::make_tuple(
-            std::numeric_limits<typename std::tuple_element<I, Tuple>::type>::max()...);
+            (std::numeric_limits<typename std::tuple_element<I, Tuple>::type>::max)()...);
     }
 };
 
@@ -636,9 +638,9 @@ void fill_histogram(
     bool applymask                      = false,
     std::vector<std::vector<bool>> mask = {},
     typename histogram<T...>::key_type lower =
-        detail::tuple_limit<typename histogram<T...>::key_type>::min(),
+        (detail::tuple_limit<typename histogram<T...>::key_type>::min)(),
     typename histogram<T...>::key_type upper =
-        detail::tuple_limit<typename histogram<T...>::key_type>::max(),
+        (detail::tuple_limit<typename histogram<T...>::key_type>::max)(),
     bool setlimits = false)
 {
     if (!accumulate)
@@ -664,10 +666,10 @@ void fill_histogram(
 /// #bins * log( #bins ) by sorting the keys and then calculating the cumulative version.
 ///
 template <typename Container>
-Container cumulative_histogram(Container const&);
+auto cumulative_histogram(Container const&) -> Container;
 
 template <typename... T>
-histogram<T...> cumulative_histogram(histogram<T...> const& hist)
+auto cumulative_histogram(histogram<T...> const& hist) -> histogram<T...>
 {
     using check_list = boost::mp11::mp_list<boost::has_less<T>...>;
     static_assert(

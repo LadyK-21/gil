@@ -17,7 +17,6 @@
 
 namespace boost { namespace gil {
 
-
 /////////////////////////////////////////
 /// Histogram Equalization(HE)
 /////////////////////////////////////////
@@ -29,7 +28,7 @@ namespace boost { namespace gil {
 ///        1. If histogram A is to be equalized compute the cumulative histogram of A.
 ///        2. Let CFD(A) refer to the cumulative histogram of A
 ///        3. For a uniform histogram A', CDF(A') = A'
-///        4. We need to transfrom A to A' such that
+///        4. We need to transform A to A' such that
 ///        5. CDF(A') = CDF(A) => A' = CDF(A)
 ///        6. Hence the pixel transform , px => histogram_of_ith_channel[px].
 ///
@@ -42,7 +41,8 @@ namespace boost { namespace gil {
 ///        and returns the color map used for histogram equalization.
 ///
 template <typename SrcKeyType>
-std::map<SrcKeyType, SrcKeyType> histogram_equalization(histogram<SrcKeyType> const& src_hist)
+auto histogram_equalization(histogram<SrcKeyType> const& src_hist)
+    -> std::map<SrcKeyType, SrcKeyType>
 {
     histogram<SrcKeyType> dst_hist;
     return histogram_equalization(src_hist, dst_hist);
@@ -59,8 +59,8 @@ std::map<SrcKeyType, SrcKeyType> histogram_equalization(histogram<SrcKeyType> co
 ///        as well as transforming the destination histogram.
 ///
 template <typename SrcKeyType, typename DstKeyType>
-std::map<SrcKeyType, DstKeyType>
-    histogram_equalization(histogram<SrcKeyType> const& src_hist, histogram<DstKeyType>& dst_hist)
+auto histogram_equalization(histogram<SrcKeyType> const& src_hist, histogram<DstKeyType>& dst_hist)
+    -> std::map<SrcKeyType, DstKeyType>
 {
     static_assert(
         std::is_integral<SrcKeyType>::value &&
@@ -70,8 +70,8 @@ std::map<SrcKeyType, DstKeyType>
     using value_t = typename histogram<SrcKeyType>::value_type;
     dst_hist.clear();
     double sum          = src_hist.sum();
-    SrcKeyType min_key  = std::numeric_limits<DstKeyType>::min();
-    SrcKeyType max_key  = std::numeric_limits<DstKeyType>::max();
+    SrcKeyType min_key  = (std::numeric_limits<DstKeyType>::min)();
+    SrcKeyType max_key  = (std::numeric_limits<DstKeyType>::max)();
     auto cumltv_srchist = cumulative_histogram(src_hist);
     std::map<SrcKeyType, DstKeyType> color_map;
     std::for_each(cumltv_srchist.begin(), cumltv_srchist.end(), [&](value_t const& v) {
@@ -120,8 +120,8 @@ void histogram_equalization(
     std::size_t const channels = num_channels<SrcView>::value;
     coord_t const width        = src_view.width();
     coord_t const height       = src_view.height();
-    std::size_t pixel_max      = std::numeric_limits<dst_channel_t>::max();
-    std::size_t pixel_min      = std::numeric_limits<dst_channel_t>::min();
+    std::size_t pixel_max      = (std::numeric_limits<dst_channel_t>::max)();
+    std::size_t pixel_min      = (std::numeric_limits<dst_channel_t>::min)();
 
     for (std::size_t i = 0; i < channels; i++)
     {

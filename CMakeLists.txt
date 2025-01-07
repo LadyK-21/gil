@@ -36,7 +36,7 @@ target_link_libraries(boost_gil
     Boost::variant2
 )
 
-target_compile_features(boost_gil INTERFACE cxx_std_11)
+target_compile_features(boost_gil INTERFACE cxx_std_14)
 
 else()
 
@@ -60,14 +60,19 @@ option(BOOST_GIL_ENABLE_EXT_RASTERIZATION "Enable Rasterization extension and te
 option(BOOST_GIL_ENABLE_EXT_IMAGE_PROCESSING "Enable Image Processing extension (!) and tests" ON)
 option(BOOST_GIL_USE_CONAN "Use Conan to install dependencies" OFF)
 option(BOOST_GIL_USE_CLANG_TIDY "Set CMAKE_CXX_CLANG_TIDY property on targets to enable clang-tidy linting" OFF)
-set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ standard version to use (default is 11)")
+option(BOOST_GIL_USE_BOOST_FILESYSTEM "Use boost::filesystem, disabling requires CMAKE_CXX_STANDARD >= 17" ON)
+set(CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard version to use (default is 14)")
+
+if (NOT BOOST_GIL_USE_BOOST_FILESYSTEM AND CMAKE_CXX_STANDARD LESS 17)
+  message(FATAL_ERROR "Using std::filesystem requires CMAKE_CXX_STANDARD >= 17")
+endif()
 
 #-----------------------------------------------------------------------------
 # Project
 #-----------------------------------------------------------------------------
 project(Boost.GIL
   LANGUAGES CXX
-  DESCRIPTION "Boost.GIL - Generic Image Library | Requires C++11 since Boost 1.68")
+  DESCRIPTION "Boost.GIL - Generic Image Library | Requires C++14 since Boost 1.80")
 
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_BINARY_DIR}/cmake)
 
@@ -105,13 +110,20 @@ target_compile_options(gil_compile_options
     $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-fstrict-aliasing>
     $<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<NOT:$<BOOL:${BOOST_GIL_BUILD_CI}>>>:-Wall -Wconversion -Wextra -Wfloat-equal -Wshadow -Wsign-promo -Wstrict-aliasing -Wunused-parameter -pedantic>)
 
+
+if (BOOST_GIL_USE_BOOST_FILESYSTEM)
+  set(filesystem_definition "BOOST_GIL_USE_BOOST_FILESYSTEM")
+else()
+  set(filesystem_definition "BOOST_GIL_IO_USE_STD_FILESYSTEM")
+endif()
 target_compile_definitions(gil_compile_options
   INTERFACE
     $<$<CXX_COMPILER_ID:MSVC>:_CRT_NONSTDC_NO_DEPRECATE>
     $<$<CXX_COMPILER_ID:MSVC>:_SCL_SECURE_NO_DEPRECATE>
     $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
     $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX>
-    $<$<CXX_COMPILER_ID:MSVC>:BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE>)
+    $<$<CXX_COMPILER_ID:MSVC>:BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE>
+    ${filesystem_definition})
 
 #-----------------------------------------------------------------------------
 # Dependency target
@@ -140,12 +152,18 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(Boost_USE_STATIC_RUNTIME OFF)
 endif()
 
-find_package(Boost 1.72.0 REQUIRED COMPONENTS filesystem)
+set(Boost_required_components headers)
+if (BOOST_GIL_USE_BOOST_FILESYSTEM)
+  list(APPEND Boost_required_components filesystem)
+endif()
+find_package(Boost 1.80.0 REQUIRED COMPONENTS ${Boost_required_components})
 message(STATUS "Boost.GIL: Using Boost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost.GIL: Using Boost_LIBRARY_DIRS=${Boost_LIBRARY_DIRS}")
 
-target_link_libraries(gil_dependencies INTERFACE Boost::filesystem)
-
+target_link_libraries(gil_dependencies INTERFACE Boost::headers)
+if (BOOST_GIL_USE_BOOST_FILESYSTEM)
+  target_link_libraries(gil_dependencies INTERFACE Boost::filesystem)
+endif()
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   target_link_libraries(gil_dependencies INTERFACE Boost::disable_autolinking)
 endif()
@@ -161,7 +179,7 @@ if(BOOST_GIL_USE_CONAN)
   # Download automatically, you can also just copy the conan.cmake file
   if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
     message(STATUS "Boost.GIL: Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/v0.15/conan.cmake"
+    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
       "${CMAKE_BINARY_DIR}/conan.cmake")
   endif()
 

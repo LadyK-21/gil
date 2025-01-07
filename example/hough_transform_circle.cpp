@@ -8,6 +8,7 @@
 
 #include <boost/gil.hpp>
 #include <boost/gil/extension/io/png.hpp>
+#include <boost/gil/extension/rasterization/circle.hpp>
 
 #include <iostream>
 #include <limits>
@@ -21,7 +22,7 @@ namespace gil = boost::gil;
 // The function hough_circle_transform_brute, defined in include/boost/gil/image_processing/hough_transform.cpp,
 // accepts a greyscale edge map, the three Hough parameters allowing to do the drawing and the voting,
 // an accumulator in the form of an iterator of views of the parameter space and a utility rasterizer to produce the points.
-// The example outputs the voting cell of the centre of a circle drawn programatically.
+// The example outputs the voting cell of the centre of a circle drawn programmatically.
 // See also:
 // hough_transform_line.cpp - Hough transform to detect lines
 
@@ -33,13 +34,8 @@ int main()
 
     const std::ptrdiff_t circle_radius = 16;
     const gil::point_t circle_center = {64, 64};
-    const auto rasterizer = gil::midpoint_circle_rasterizer{};
-    std::vector<gil::point_t> circle_points(rasterizer.point_count(circle_radius));
-    rasterizer(circle_radius, circle_center, circle_points.begin());
-    for (const auto& point : circle_points)
-    {
-        input(point) = std::numeric_limits<gil::uint8_t>::max();
-    }
+    const auto rasterizer = gil::midpoint_circle_rasterizer{circle_center, circle_radius};
+    gil::apply_rasterizer(input, rasterizer, gil::gray8_pixel_t{255});
 
     const auto radius_parameter =
         gil::hough_parameter<std::ptrdiff_t>::from_step_count(circle_radius, 3, 3);

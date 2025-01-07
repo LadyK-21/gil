@@ -76,7 +76,7 @@ struct targa_screen_origin_bit : property_base< bool > {};
 template<>
 struct image_read_info< targa_tag >
 {
-    /// Default contructor.
+    /// Default constructor.
     image_read_info()
     : _screen_origin_bit(false)
     , _valid( false )
@@ -143,8 +143,8 @@ struct image_read_settings< targa_tag > : public image_read_settings_base
     /// Constructor
     /// \param top_left Top left coordinate for reading partial image.
     /// \param dim      Dimensions for reading partial image.
-    image_read_settings( const point_t& top_left
-                       , const point_t& dim
+    image_read_settings( point_t const& top_left
+                       , point_t const& dim
                        )
     : image_read_settings_base( top_left
                               , dim

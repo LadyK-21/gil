@@ -1,4 +1,3 @@
-// Boost.GIL (Generic Image Library) - tests
 //
 // Copyright 2020 Olzhas Zhumabek <anonymous.from.applecity@gmail.com>
 //
@@ -7,29 +6,21 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <algorithm>
-#include <boost/core/lightweight_test.hpp>
-#include "boost/gil/point.hpp"
-#include "boost/gil/extension/rasterization/line.hpp"
+#include "core/point/test_fixture.hpp"
 
+#include <boost/gil/point.hpp>
+#include <boost/gil/extension/rasterization/line.hpp>
+
+#include <boost/core/lightweight_test.hpp>
+
+#include <algorithm>
 #include <cmath>
-#include <cstddef>
+#include <cstdint>
 #include <iterator>
 #include <random>
 #include <vector>
 
 namespace gil = boost::gil;
-
-namespace boost
-{
-namespace gil
-{
-std::ostream& operator<<(std::ostream& os, const point_t p)
-{
-    os << "{x=" << p.x << ", y=" << p.y << "}";
-    return os;
-}
-}} // namespace boost::gil
 
 using line_type = std::vector<gil::point_t>;
 
@@ -49,13 +40,13 @@ endpoints create_endpoints(std::mt19937& twister,
 
 line_type create_line(endpoints points)
 {
-    gil::bresenham_line_rasterizer rasterizer;
-    line_type forward_line(rasterizer.point_count(points.start, points.end));
-    rasterizer(points.start, points.end, forward_line.begin());
+    gil::bresenham_line_rasterizer rasterizer(points.start, points.end);
+    line_type forward_line(rasterizer.point_count());
+    rasterizer(forward_line.begin());
     return forward_line;
 }
 
-void test_start_end(const line_type& line_points, endpoints points)
+void test_start_end(line_type const& line_points, endpoints points)
 {
     BOOST_TEST_EQ(line_points.front(), points.start);
     BOOST_TEST_EQ(line_points.back(), points.end);

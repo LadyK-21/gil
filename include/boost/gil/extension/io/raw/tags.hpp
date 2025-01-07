@@ -122,7 +122,7 @@ struct raw_unpack_function_name : property_base< std::string > {};
 template<>
 struct image_read_info< raw_tag >
 {
-    /// Default contructor.
+    /// Default constructor.
     image_read_info()
     : _valid( false )
     {}
@@ -164,7 +164,7 @@ struct image_read_info< raw_tag >
     raw_libraw_version::type       _libraw_version;
     raw_unpack_function_name::type _unpack_function_name;
 
-    /// Used internaly to identify if the header has been read.
+    /// Used internally to identify if the header has been read.
     bool _valid;
 };
 
@@ -182,8 +182,8 @@ struct image_read_settings< raw_tag > : public image_read_settings_base
     /// Constructor
     /// \param top_left Top left coordinate for reading partial image.
     /// \param dim      Dimensions for reading partial image.
-    image_read_settings( const point_t& top_left
-                       , const point_t& dim
+    image_read_settings( point_t const& top_left
+                       , point_t const& dim
                        )
     : image_read_settings_base( top_left
                               , dim
